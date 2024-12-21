@@ -1,0 +1,78 @@
+.app-container {
+  text-align: center;
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.main-page,
+.practice-page {
+  text-align: center;
+}
+
+.verbs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+.verb-button {
+  background: linear-gradient(to bottom, #5b00ff, #6a5af9);
+  border-radius: 20px;
+  color: white;
+  font-size: 18px;
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.typing-field {
+  font-size: 18px;
+  margin: 20px 0;
+  width: 60%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  resize: none;
+}
+
+.typing-field:focus {
+  border-color: #5b00ff;
+}
+
+.action-button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 25px; /* 더 둥근 버튼 */
+  background: linear-gradient(to bottom, #4caf50, #45a049); /* 녹색 그라디언트 */
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.action-button:hover {
+  background: linear-gradient(to bottom, #45a049, #388e3c); /* 호버 시 진한 그라디언트 */
+}
+
+.quote {
+  margin-top: 30px;
+  font-size: 14px;
+  font-style: italic;
+  color: #6a5af9; /* 다른 색상으로 구분 */
+  font-weight: bold;
+  text-align: center;
+}
+
