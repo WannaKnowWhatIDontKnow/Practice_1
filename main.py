@@ -16,7 +16,7 @@ app.add_middleware(
 database = {
     "verbs": [
         {"verb": "get", "examples": [
-            {"english": "I got you covered.", "korean": "내가 널 책임질게."},
+            {"english": "I got you covered!", "korean": "내가 널 책임질게."},
             {"english": "I get it.", "korean": "이해했어."},
             {"english": "It got you.", "korean": "그게 널 잡았어."}
         ]},
