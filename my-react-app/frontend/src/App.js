@@ -22,13 +22,14 @@ function App() {
   const [completed, setCompleted] = useState(false);
   const [currentQuote, setCurrentQuote] = useState("");
 
+  //To fetch the verb list
   useEffect(() => {
     fetch("http://localhost:8000/verbs")
       .then((res) => res.json())
       .then((data) => setVerbs(data));
   }, []);
 
-  // 📚 예문 가져오기
+  //To fetch the examples for the verbs
   const fetchExamples = (verb) => {
     fetch(`http://localhost:8000/examples/${verb}`)
       .then((res) => res.json())
@@ -44,7 +45,7 @@ function App() {
       });
   };
 
-  // 📚 입력 확인
+  //To check if the answer is right
   const handleCheckSentence = () => {
     const currentExample = examples[currentExampleIndex];
     fetch("http://localhost:8000/check_sentence", {
@@ -131,15 +132,17 @@ function App() {
                 {examples[currentExampleIndex]?.english} (
                 {examples[currentExampleIndex]?.korean})
               </p>
-              <textarea
-                value={userInput}
-                onChange={handleInputChange}
-                className="typing-field"
-                placeholder="여기에 입력하세요..."
-              />
-              <button onClick={handleCheckSentence} className="action-button">
-                제출
-              </button>
+              <div className="input-container">
+                <textarea
+                  value={userInput}
+                  onChange={handleInputChange}
+                  className="typing-field"
+                  placeholder="여기에 입력하세요..."
+                />
+                <button onClick={handleCheckSentence} className="action-button">
+                  제출
+                </button>
+              </div>
               <div className="quote">{currentQuote}</div>
               <p>{feedback}</p>
             </>
