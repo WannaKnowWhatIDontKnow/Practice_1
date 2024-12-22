@@ -1,19 +1,18 @@
-from fastapi import FastAPI, HTTPException
+#pip install fastapi/uvicorn/pydantic
+from fastapi import FastAPI, HTTPException 
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI ()
 
-# CORS 설정 추가
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React 개발 서버 주소
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 데이터베이스
 database = {
     "verbs": [
         {"verb": "get", "examples": [
@@ -23,7 +22,7 @@ database = {
         ]},
         {"verb": "bring", "examples": [
             {"english": "Bring me the book.", "korean": "그 책을 가져와."},
-            {"english": "Can you bring it to me?", "korean": "그거 나한테 가져다줄 수 있어?"}
+            {"english": "Can you bring it to me?", "korean": "그거 나한테 가져다줄래?"},
         ]},
         {"verb": "tell", "examples": [
             {"english": "Tell me the truth.", "korean": "진실을 말해줘."},
