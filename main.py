@@ -1,9 +1,22 @@
 #pip install fastapi/uvicorn/pydantic
-from fastapi import FastAPI, HTTPException 
+from fastapi import FastAPI, Depends, HTTPException 
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from database import SessionLocal, Verb, Example
 
 app = FastAPI ()
+
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,38 +26,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-database = {
-    "verbs": [
-        {"verb": "get", "examples": [
-            {"english": "I got you covered!", "korean": "내가 널 책임질게."},
-            {"english": "I get it.", "korean": "이해했어."},
-            {"english": "It got you.", "korean": "그게 널 잡았어."}
-        ]},
-        {"verb": "bring", "examples": [
-            {"english": "Bring me the book.", "korean": "그 책을 가져와."},
-            {"english": "Can you bring it to me?", "korean": "그거 나한테 가져다줄래?"},
-        ]},
-        {"verb": "tell", "examples": [
-            {"english": "Tell me the truth.", "korean": "진실을 말해줘."},
-            {"english": "I can tell you everything.", "korean": "내가 너한테 다 말해줄게."}
-        ]}
-    ]
-}
+@app.get("/verbs")
+def get_verbs(db: Session = Depends(get_db)):
+    verbs = db.query(Verb).all()
+    if not verbs:
+        raise HTTPException(status_code=404, detail="단어를 찾지 못했습니다.")
+    return [{"id": verb.id, "verb": verb.verb} for verb in verbs]
 
+@app.get("/examples/{verb}")
+def get_examples(verb: str, db: Session = Depends(get_db)):
+    verb_entry = db.query(Verb).filter(Verb.verb == verb).first()
+    if not verb_entry:
+        raise HTTPException(status_code=404, detail="단어를 찾지 못했습니다.")
+    return [
+        {"english": example.english, "korean": example.korean}
+        for example in verb_entry.examples
+    ]
+
+#요청 데이터의 모델 정의
 class SentenceCheckRequest(BaseModel):
     user_input: str
     correct_sentence: str
-
-@app.get("/verbs")
-def get_verbs():
-    return [verb["verb"] for verb in database["verbs"]]
-
-@app.get("/examples/{verb}")
-def get_examples(verb: str):
-    for entry in database["verbs"]:
-        if entry["verb"] == verb:
-            return entry["examples"]
-    raise HTTPException(status_code=404, detail="Verb not found")
 
 @app.post("/check_sentence")
 def check_sentence(request: SentenceCheckRequest):
