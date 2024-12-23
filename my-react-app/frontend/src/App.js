@@ -1,35 +1,26 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
-const quotes = [
-  "마음이 고요하면 모든 것이 명확해진다.",
-  "현재에 집중하라. 그것이 최고의 순간이다.",
-  "작은 일에도 마음을 다하면 큰 결과를 얻는다.",
-  "천천히, 그러나 꾸준히 나아가라.",
-  "깨어있는 마음이 더 나은 선택을 만든다."
-];
-
 function App() {
-  const [verbs, setVerbs] = useState([]);
-  const [selectedVerb, setSelectedVerb] = useState(null);
-  const [examples, setExamples] = useState([]);
-  const [currentExampleIndex, setCurrentExampleIndex] = useState(0);
-  const [repeatCount, setRepeatCount] = useState(1);
-  const [currentRepeat, setCurrentRepeat] = useState(0);
-  const [userInput, setUserInput] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [completed, setCompleted] = useState(false);
-  const [currentQuote, setCurrentQuote] = useState("");
+  const [verbs, setVerbs] = useState([]); // 동사 목록
+  const [selectedVerb, setSelectedVerb] = useState(null); // 선택된 동사
+  const [examples, setExamples] = useState([]); // 예문 목록
+  const [currentExampleIndex, setCurrentExampleIndex] = useState(0); // 현재 예문 인덱스
+  const [userInput, setUserInput] = useState(''); // 사용자 입력
+  const [feedback, setFeedback] = useState(''); // 피드백 메시지
+  const [completed, setCompleted] = useState(false); // 완료 여부
 
-  //To fetch the verb list
+  const appRef = useRef(null); // 키보드 이벤트를 감지할 요소 참조
+
+  // ✅ 동사 목록 가져오기
   useEffect(() => {
     fetch("http://localhost:8000/verbs")
       .then((res) => res.json())
-      .then((data) => setVerbs(data));
+      .then((data) => setVerbs(data))
+      .catch((error) => console.error("Error fetching verbs:", error));
   }, []);
 
-  //To fetch the examples for the verbs
+  // ✅ 특정 동사의 예문 가져오기
   const fetchExamples = (verb) => {
     fetch(`http://localhost:8000/examples/${verb}`)
       .then((res) => res.json())
@@ -37,15 +28,14 @@ function App() {
         setSelectedVerb(verb);
         setExamples(data);
         setCurrentExampleIndex(0);
-        setCurrentRepeat(0);
-        setUserInput("");
-        setFeedback("");
+        setUserInput('');
+        setFeedback('');
         setCompleted(false);
-        setCurrentQuote(quotes[Math.floor(Math.random() * quotes.length)]);
-      });
+      })
+      .catch((error) => console.error("Error fetching examples:", error));
   };
 
-  //To check if the answer is right
+  // ✅ 문장 확인
   const handleCheckSentence = () => {
     const currentExample = examples[currentExampleIndex];
     fetch("http://localhost:8000/check_sentence", {
@@ -59,53 +49,59 @@ function App() {
       .then((res) => res.json())
       .then((data) => {
         if (data.is_correct) {
-          if (currentRepeat + 1 < repeatCount) {
-            setCurrentRepeat(currentRepeat + 1);
-            setUserInput("");
-            setFeedback("정답입니다! 반복해주세요.");
-          } else if (currentExampleIndex + 1 < examples.length) {
-            setCurrentExampleIndex(currentExampleIndex + 1);
-            setCurrentRepeat(0);
-            setUserInput("");
-            setFeedback("정답입니다! 다음 예문으로 넘어갑니다.");
-            setCurrentQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+          setFeedback("정답입니다!");
+          if (currentExampleIndex + 1 < examples.length) {
+            setTimeout(() => {
+              setCurrentExampleIndex(currentExampleIndex + 1);
+              setUserInput('');
+              setFeedback('');
+            }, 1000);
           } else {
             setCompleted(true);
-            setFeedback("");
+            setFeedback("모든 예문이 완료되었습니다!");
           }
         } else {
           setFeedback("틀렸습니다. 다시 시도해주세요.");
         }
-      });
+      })
+      .catch((error) => console.error("Error checking sentence:", error));
   };
 
-  // 📚 입력 필드 업데이트
+  // ✅ Enter 키로 동작 구분
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault(); // 기본 Enter 동작 방지
+
+      if (completed) {
+        // ✅ 완료 페이지에서는 홈으로 돌아가기
+        setSelectedVerb(null);
+        setCompleted(false);
+      } else {
+        // ✅ 예문 제출
+        handleCheckSentence();
+      }
+    }
+  };
+
+  // ✅ 페이지가 로드될 때 포커스를 강제 설정
+  useEffect(() => {
+    if (appRef.current) {
+      appRef.current.focus();
+    }
+  }, [completed]); // completed 상태가 변경될 때마다 포커스 설정
+
+  // ✅ 입력값 업데이트
   const handleInputChange = (e) => {
     setUserInput(e.target.value);
   };
 
-  // 📚 Enter 키로 이벤트 처리
-  useEffect(() => {
-    const handleGlobalKeyDown = (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (completed) {
-          setSelectedVerb(null); // 홈으로 돌아가기
-        } else {
-          handleCheckSentence(); // 문장 확인
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleGlobalKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleGlobalKeyDown);
-    };
-  }, [completed, handleCheckSentence]);
-
   return (
-    <div className="app-container">
+    <div
+      ref={appRef}
+      className="app-container"
+      onKeyDown={handleKeyDown}
+      tabIndex={0} // 포커스를 받을 수 있도록 설정
+    >
       <header className="header">English Learning App</header>
 
       {!selectedVerb ? (
@@ -114,11 +110,11 @@ function App() {
           <div className="verbs-container">
             {verbs.map((verb) => (
               <button
-                key={verb}
-                onClick={() => fetchExamples(verb)}
+                key={verb.id}
+                onClick={() => fetchExamples(verb.verb)}
                 className="verb-button"
               >
-                {verb}
+                {verb.verb}
               </button>
             ))}
           </div>
@@ -136,6 +132,7 @@ function App() {
                 <textarea
                   value={userInput}
                   onChange={handleInputChange}
+                  onKeyDown={handleKeyDown} // ✅ Enter 키 이벤트 추가
                   className="typing-field"
                   placeholder="여기에 입력하세요..."
                 />
@@ -143,14 +140,16 @@ function App() {
                   제출
                 </button>
               </div>
-              <div className="quote">{currentQuote}</div>
-              <p>{feedback}</p>
+              <p className="feedback">{feedback}</p>
             </>
           ) : (
             <>
               <h3>모든 예문이 완료되었습니다!</h3>
               <button
-                onClick={() => setSelectedVerb(null)}
+                onClick={() => {
+                  setSelectedVerb(null);
+                  setCompleted(false);
+                }}
                 className="action-button"
               >
                 홈으로 돌아가기
@@ -162,6 +161,5 @@ function App() {
     </div>
   );
 }
-
 
 export default App;
